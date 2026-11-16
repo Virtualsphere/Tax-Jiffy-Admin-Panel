@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: 'Invoices', to: ROUTES.invoices },
   { label: 'Live Activity', to: ROUTES.activity },
   { label: 'API Limits', to: ROUTES.apiLimits },
+  { label: 'OTP Usage', to: ROUTES.otpUsage },
   { label: 'Subscription Plans', to: ROUTES.subscriptionPlans },
 ] as const
 

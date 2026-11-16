@@ -9,6 +9,7 @@ import { GstDetailPage } from '@/pages/gst/GstDetailPage'
 import { InvoicesPage } from '@/pages/invoices/InvoicesPage'
 import { LiveActivityPage } from '@/pages/activity/LiveActivityPage'
 import { ApiLimitsPage } from '@/pages/api-limits/ApiLimitsPage'
+import { OtpUsagePage } from '@/pages/otp-usage/OtpUsagePage'
 import { SubscriptionPlansPage } from '@/pages/subscription-plans/SubscriptionPlansPage'
 
 export const router = createBrowserRouter([
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.invoices, element: <InvoicesPage /> },
           { path: ROUTES.activity, element: <LiveActivityPage /> },
           { path: ROUTES.apiLimits, element: <ApiLimitsPage /> },
+          { path: ROUTES.otpUsage, element: <OtpUsagePage /> },
           { path: ROUTES.subscriptionPlans, element: <SubscriptionPlansPage /> },
         ],
       },

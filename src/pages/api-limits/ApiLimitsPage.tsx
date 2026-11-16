@@ -7,7 +7,13 @@ import { LoadingState, ErrorState, EmptyState } from '@/components/StateMessage'
 import { apiUsageApi } from './api-usage.api'
 import type { ApiUsageType, GstApiUsageGroup } from './api-usage.types'
 
-const API_TYPES: ApiUsageType[] = ['EINVOICE', 'EWAYBILL', 'IMS']
+const API_COLUMNS: { type: ApiUsageType; label: string }[] = [
+  { type: 'GSTR1', label: 'GSTR-1' },
+  { type: 'GSTR2B', label: 'GSTR-2B' },
+  { type: 'IMS', label: 'IMS' },
+  { type: 'EINVOICE', label: 'E-Invoice' },
+  { type: 'EWAYBILL', label: 'E-Way Bill' },
+]
 
 function groupByGst(rows: Awaited<ReturnType<typeof apiUsageApi.getAll>>): GstApiUsageGroup[] {
   const map = new Map<number, GstApiUsageGroup>()
@@ -19,10 +25,11 @@ function groupByGst(rows: Awaited<ReturnType<typeof apiUsageApi.getAll>>): GstAp
         gstNumber: row.gstNumber,
         companyName: row.companyName,
         periodKey: row.periodKey,
+        totalCallCount: row.totalCallCount,
         effectiveLimit: row.effectiveLimit,
         planDefaultLimit: row.planDefaultLimit,
         override: row.override,
-        usageByType: { EINVOICE: 0, EWAYBILL: 0, IMS: 0 },
+        usageByType: { GSTR1: 0, GSTR2B: 0, IMS: 0, EINVOICE: 0, EWAYBILL: 0 },
       }
       map.set(row.companyGstId, group)
     }
@@ -66,7 +73,7 @@ export function ApiLimitsPage() {
     <div>
       <PageHeader
         title="API Limits"
-        subtitle="3rd-party GST-portal call usage this period, per GST number. Calls are hard-blocked once a limit is reached."
+        subtitle="GST-portal API calls this month, per GST number. The limit applies to the total across all APIs; calls are blocked once it is reached. OTP logins are not counted (see OTP Usage)."
       />
 
       {isLoading && <LoadingState label="Loading API usage…" />}
@@ -79,27 +86,29 @@ export function ApiLimitsPage() {
             <Tr>
               <Th>GSTIN</Th>
               <Th>Company</Th>
-              <Th>E-Invoice</Th>
-              <Th>E-Way Bill</Th>
-              <Th>IMS</Th>
-              <Th>Limit / period</Th>
+              {API_COLUMNS.map((c) => (
+                <Th key={c.type}>{c.label}</Th>
+              ))}
+              <Th>Used / Limit</Th>
               <Th>Override</Th>
               <Th>Actions</Th>
             </Tr>
           </THead>
           <TBody>
             {groups.map((g) => {
-              const total = API_TYPES.reduce((sum, t) => sum + g.usageByType[t], 0)
-              const nearLimit = g.effectiveLimit > 0 && total / g.effectiveLimit >= 0.9
+              const total = g.totalCallCount
+              const nearLimit = g.effectiveLimit === 0 || total / g.effectiveLimit >= 0.9
               return (
                 <Tr key={g.companyGstId}>
                   <Td className="font-mono font-medium text-slate-900">{g.gstNumber}</Td>
                   <Td>{g.companyName ?? '—'}</Td>
-                  <Td>{g.usageByType.EINVOICE}</Td>
-                  <Td>{g.usageByType.EWAYBILL}</Td>
-                  <Td>{g.usageByType.IMS}</Td>
+                  {API_COLUMNS.map((c) => (
+                    <Td key={c.type}>{g.usageByType[c.type]}</Td>
+                  ))}
                   <Td>
-                    <span className={nearLimit ? 'font-semibold text-red-600' : undefined}>{g.effectiveLimit}</span>
+                    <span className={nearLimit ? 'font-semibold text-red-600' : 'font-medium text-slate-900'}>
+                      {total} / {g.effectiveLimit}
+                    </span>
                     {g.planDefaultLimit != null && g.override != null && (
                       <span className="text-slate-400"> (plan: {g.planDefaultLimit})</span>
                     )}
